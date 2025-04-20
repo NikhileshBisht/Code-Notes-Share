@@ -10,7 +10,14 @@ const app = express();
 const PORT = process.env.PORT || 5000;  // Use the port from .env or default to 5000
 
 // Enable CORS
-app.use(cors());
+const corsOptions = {
+  origin: 'https://code-notes-share-6q1z-git-main-nikhilesh-bishts-projects.vercel.app',  // Replace with your frontend's URL
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type'],
+};
+
+app.use(cors(corsOptions));
+
 
 // Middleware to parse JSON
 app.use(bodyParser.json());
