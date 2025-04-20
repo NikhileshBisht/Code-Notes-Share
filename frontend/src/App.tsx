@@ -1,16 +1,13 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Start from './pages/Start';
-import Notes from './pages/Notes';
-// import CreatePage from './CreatePage';
+// import Notes from './pages/Notes'; // Remove if unused
 
 function App() {
   return (
     <Router>
       <Routes>
-      <Route path="/" element={<Start />} />
-        {/* <Route path="/connect" element={<ConnectPage />} />
-        <Route path="/create" element={<CreatePage />} /> */}
+        <Route path="/" element={<Start />} />
       </Routes>
     </Router>
   );

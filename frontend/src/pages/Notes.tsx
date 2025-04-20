@@ -1,21 +1,31 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import '../App.css';
 import DeletePopup from './DeletePopup';
 
-const SheetTabs = (prop: any) => {
-  const [tabs, setTabs] = useState([{ id: 1, name: 'untitled 1', content: '' }]);
-  const [activeTabId, setActiveTabId] = useState(1);
-  const [editingId, setEditingId] = useState(null);
-  const [inputValue, setInputValue] = useState('');
-  const [isDelete, setIsDelete] = useState(false);
-  const [selectedTab, setSelectedTab] = useState(null);
+type Tab = {
+  id: number;
+  name: string;
+  content: string;
+};
+
+type Props = {
+  data: string;
+};
+
+const SheetTabs = ({ data }: Props) => {
+  const [tabs, setTabs] = useState<Tab[]>([{ id: 1, name: 'untitled 1', content: '' }]);
+  const [activeTabId, setActiveTabId] = useState<number>(1);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [inputValue, setInputValue] = useState<string>('');
+  const [isDelete, setIsDelete] = useState<boolean>(false);
+  const [selectedTab, setSelectedTab] = useState<Tab | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/get-data`);
-        const data = await response.json();
-        const matchedEntry = data.find(entry => entry.name === prop?.data);
+        const dataList = await response.json();
+        const matchedEntry = dataList.find((entry: any) => entry.name === data);
 
         if (matchedEntry) {
           setTabs(matchedEntry.tabs);
@@ -24,8 +34,6 @@ const SheetTabs = (prop: any) => {
           const initialTab = { id: 1, name: 'untitled 1', content: '' };
           setTabs([initialTab]);
           setActiveTabId(1);
-
-          // Save this new entry to backend immediately
           saveDataToBackend({ tabs: [initialTab] });
         }
       } catch (err) {
@@ -34,28 +42,25 @@ const SheetTabs = (prop: any) => {
     };
 
     fetchData();
-  }, [prop?.data]);
+  }, [data]);
 
-
-
-  const debounce = (func, delay) => {
-    let debounceTimer;
-    return function (...args) {
-      const context = this;
+  const debounce = <T extends (...args: any[]) => void>(func: T, delay: number): T => {
+    let debounceTimer: ReturnType<typeof setTimeout>;
+    return function (this: any, ...args: any[]) {
       clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => func.apply(context, args), delay);
-    };
+      debounceTimer = setTimeout(() => func.apply(this, args), delay);
+    } as T;
   };
 
   const saveDataToBackend = useCallback(
-    debounce(async (data) => {
+    debounce(async (newData: { tabs: Tab[] }) => {
       try {
         const filteredData = {
-          name: prop?.data,
-          tabs: data.tabs.filter(tab => tab.name.trim() !== '' || tab.content.trim() !== '')
+          name: data,
+          tabs: newData.tabs.filter(
+            (tab) => tab.name.trim() !== '' || tab.content.trim() !== ''
+          ),
         };
-
-        console.log('Sending data:', filteredData); // Log the data being sent
 
         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/save-data`, {
           method: 'POST',
@@ -77,26 +82,20 @@ const SheetTabs = (prop: any) => {
         alert('An unexpected error occurred');
       }
     }, 500),
-    [prop?.data]
+    [data]
   );
 
-
-
   const addTab = () => {
-    const newId = tabs.length ? Math.max(...tabs.map(t => t.id)) + 1 : 1;
-    const newTab = {
-      id: newId,
-      name: `untitled ${newId}`,
-      content: ''
-    };
+    const newId = tabs.length ? Math.max(...tabs.map((t) => t.id)) + 1 : 1;
+    const newTab: Tab = { id: newId, name: `untitled ${newId}`, content: '' };
     const newTabs = [...tabs, newTab];
     setTabs(newTabs);
     setActiveTabId(newId);
     saveDataToBackend({ tabs: newTabs });
   };
 
-  const removeTab = (id) => {
-    const newTabs = tabs.filter(tab => tab.id !== id);
+  const removeTab = (id: number) => {
+    const newTabs = tabs.filter((tab) => tab.id !== id);
     setTabs(newTabs);
     if (activeTabId === id && newTabs.length > 0) {
       setActiveTabId(newTabs[0].id);
@@ -106,18 +105,18 @@ const SheetTabs = (prop: any) => {
     saveDataToBackend({ tabs: newTabs });
   };
 
-  const handleDoubleClick = (tab) => {
+  const handleDoubleClick = (tab: Tab) => {
     setEditingId(tab.id);
     setInputValue(tab.name);
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
   };
 
   const handleInputBlur = () => {
     if (inputValue.trim()) {
-      const newTabs = tabs.map(tab =>
+      const newTabs = tabs.map((tab) =>
         tab.id === editingId ? { ...tab, name: inputValue.trim() } : tab
       );
       setTabs(newTabs);
@@ -126,22 +125,22 @@ const SheetTabs = (prop: any) => {
     setEditingId(null);
   };
 
-  const handleInputKeyDown = (e) => {
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       handleInputBlur();
     }
   };
 
-  const handleTextareaChange = (e) => {
-    const updatedTabs = tabs.map(tab =>
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const updatedTabs = tabs.map((tab) =>
       tab.id === activeTabId ? { ...tab, content: e.target.value } : tab
     );
     setTabs(updatedTabs);
     saveDataToBackend({ tabs: updatedTabs });
   };
 
-  const activeTab = tabs.find(t => t.id === activeTabId);
+  const activeTab = tabs.find((t) => t.id === activeTabId);
 
   return (
     <>
@@ -157,7 +156,7 @@ const SheetTabs = (prop: any) => {
       )}
       <div className="sheet-tabs-wrapper">
         <div className="sheet-tabs">
-          {tabs.map(tab => (
+          {tabs.map((tab) => (
             <div
               key={tab.id}
               className={`sheet-tab ${tab.id === activeTabId ? 'active' : ''}`}
@@ -191,19 +190,22 @@ const SheetTabs = (prop: any) => {
                     >
                       ✕
                     </button>
-
                   )}
                 </>
               )}
             </div>
           ))}
-          <button className="add-tab" onClick={addTab}>＋</button>
+          <button className="add-tab" onClick={addTab}>
+            ＋
+          </button>
         </div>
-        <div style={{
-          position: 'absolute',
-          left: 'calc(100% - 55px)',
-          top: '10%'
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            left: 'calc(100% - 55px)',
+            top: '10%',
+          }}
+        >
           <button
             className="copy-button"
             onClick={() => {
@@ -230,7 +232,7 @@ const SheetTabs = (prop: any) => {
             margin: '12px',
             width: 'calc(100% - 24px)',
             resize: 'none',
-            background: "grey",
+            background: 'grey',
           }}
           value={activeTab?.content || ''}
           onChange={handleTextareaChange}
