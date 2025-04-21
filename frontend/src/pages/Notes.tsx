@@ -23,11 +23,21 @@ const SheetTabs = ({ data }: Props) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/get-data`);
-        const dataList = await response.json();
-        const matchedEntry = dataList.find((entry: any) => entry.name === data);
-
-        if (matchedEntry) {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/get-data`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ name: data }),
+        });
+  
+        if (!response.ok) {
+          throw new Error(`Server responded with ${response.status}`);
+        }
+  
+        const matchedEntry = await response.json();
+  
+        if (matchedEntry && matchedEntry.tabs) {
           setTabs(matchedEntry.tabs);
           setActiveTabId(matchedEntry.tabs[0]?.id || 1);
         } else {
@@ -40,9 +50,10 @@ const SheetTabs = ({ data }: Props) => {
         console.error('Error fetching data:', err);
       }
     };
-
+  
     fetchData();
   }, [data]);
+  
 
   const debounce = <T extends (...args: any[]) => void>(func: T, delay: number): T => {
     let debounceTimer: ReturnType<typeof setTimeout>;
@@ -227,13 +238,18 @@ const SheetTabs = ({ data }: Props) => {
 
         <textarea
           style={{
-            height: 'calc(100vh - 112px)',
+            height: 'calc(100vh - 120px)',
             fontSize: '14px',
             margin: '12px',
-            width: 'calc(100% - 24px)',
+            width: 'calc(100% - 34px)',
             resize: 'none',
-            background: 'grey',
-          }}
+            backgroundColor: '#545154',  
+            color: 'white',         
+            cursor: 'text',              
+            padding: '8px',           
+            borderRadius: '4px',
+            border: '1px solid #ccc',
+          }}       
           value={activeTab?.content || ''}
           onChange={handleTextareaChange}
         />

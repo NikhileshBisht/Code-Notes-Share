@@ -1,25 +1,38 @@
+require('dotenv').config();  // Load environment variables from the .env file
+
 const express = require('express');
-const serverless = require('serverless-http');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
 
 const app = express();
+const PORT = process.env.PORT || 5000;  // Use the port from .env or default to 5000
 
+// Enable CORS
 const corsOptions = {
-  origin: 'https://code-notes-share-6q1z-git-main-nikhilesh-bishts-projects.vercel.app',
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type'],
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
+
 app.use(cors(corsOptions));
+
+
+// Middleware to parse JSON
 app.use(bodyParser.json());
 
-const filePath = path.join(__dirname, 'data.json');
+// GET endpoint to fetch data from data.json
+// POST endpoint to fetch data for a specific name
+app.post('/api/get-data', (req, res) => {
+  const { name } = req.body;
 
-app.get('/api/get-data', (req, res) => {
-  fs.readFile(filePath, 'utf-8', (err, data) => {
+  if (!name) {
+    return res.status(400).json({ error: 'Name is required' });
+  }
+
+  fs.readFile(path.join(__dirname, 'data.json'), 'utf-8', (err, data) => {
     if (err && err.code !== 'ENOENT') {
       return res.status(500).json({ error: 'Error reading data file' });
     }
@@ -33,26 +46,31 @@ app.get('/api/get-data', (req, res) => {
       }
     }
 
-    const updatedData = parsedData.map(entry => {
-      if (!Array.isArray(entry.tabs) || entry.tabs.length === 0) {
-        return {
-          ...entry,
-          tabs: [{ id: 1, name: 'untitled 1', content: '' }]
-        };
-      }
-      return entry;
-    });
+    const matchedEntry = parsedData.find(entry => entry.name === name);
 
-    res.json(updatedData);
+    if (!matchedEntry) {
+      return res.status(404).json({ error: 'Entry not found' });
+    }
+
+    // Ensure tabs exist
+    if (!Array.isArray(matchedEntry.tabs) || matchedEntry.tabs.length === 0) {
+      matchedEntry.tabs = [{ id: 1, name: 'untitled 1', content: '' }];
+    }
+
+    res.json(matchedEntry);
   });
 });
 
+
+// POST endpoint to update only the 'name' field in data.json
 app.post('/api/save-name', (req, res) => {
   const { name } = req.body;
 
   if (!name) {
     return res.status(400).json({ error: 'Name is required' });
   }
+
+  const filePath = path.join(__dirname, 'data.json');
 
   fs.readFile(filePath, 'utf-8', (err, data) => {
     let currentData = [];
@@ -85,6 +103,7 @@ app.post('/api/save-name', (req, res) => {
   });
 });
 
+// POST endpoint to save data to data.json
 app.post('/api/save-data', (req, res) => {
   const { name, tabs } = req.body;
 
@@ -92,6 +111,7 @@ app.post('/api/save-data', (req, res) => {
     return res.status(400).json({ error: 'Name and tabs are required' });
   }
 
+  const filePath = path.join(__dirname, 'data.json');
   const nonEmptyTabs = tabs.filter(tab => tab.content.trim() !== '');
 
   fs.readFile(filePath, 'utf-8', (err, data) => {
@@ -136,5 +156,6 @@ app.post('/api/save-data', (req, res) => {
   });
 });
 
-module.exports = app;
-module.exports.handler = serverless(app);
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
