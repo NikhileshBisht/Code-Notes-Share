@@ -70,7 +70,7 @@ app.post('/api/save-name', (req, res) => {
     return res.status(400).json({ error: 'Name is required' });
   }
 
-  const filePath = path.join(__dirname, 'data.json');
+  const filePath = path.join(__dirname,'..', 'data.json');
 
   fs.readFile(filePath, 'utf-8', (err, data) => {
     let currentData = [];
@@ -111,7 +111,7 @@ app.post('/api/save-data', (req, res) => {
     return res.status(400).json({ error: 'Name and tabs are required' });
   }
 
-  const filePath = path.join(__dirname, 'data.json');
+  const filePath = path.join(__dirname,'..', 'data.json');
   const nonEmptyTabs = tabs.filter(tab => tab.content.trim() !== '');
 
   fs.readFile(filePath, 'utf-8', (err, data) => {
