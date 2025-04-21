@@ -1,30 +1,25 @@
-require('dotenv').config();  // Load environment variables from the .env file
-
 const express = require('express');
+const serverless = require('serverless-http');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 5000;  // Use the port from .env or default to 5000
 
-// Enable CORS
 const corsOptions = {
-  origin: 'https://code-notes-share-6q1z-git-main-nikhilesh-bishts-projects.vercel.app',  // Replace with your frontend's URL
+  origin: 'https://code-notes-share-6q1z-git-main-nikhilesh-bishts-projects.vercel.app',
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type'],
 };
 
 app.use(cors(corsOptions));
-
-
-// Middleware to parse JSON
 app.use(bodyParser.json());
 
-// GET endpoint to fetch data from data.json
+const filePath = path.join(__dirname, 'data.json');
+
 app.get('/api/get-data', (req, res) => {
-  fs.readFile(path.join(__dirname, 'data.json'), 'utf-8', (err, data) => {
+  fs.readFile(filePath, 'utf-8', (err, data) => {
     if (err && err.code !== 'ENOENT') {
       return res.status(500).json({ error: 'Error reading data file' });
     }
@@ -52,15 +47,12 @@ app.get('/api/get-data', (req, res) => {
   });
 });
 
-// POST endpoint to update only the 'name' field in data.json
 app.post('/api/save-name', (req, res) => {
   const { name } = req.body;
 
   if (!name) {
     return res.status(400).json({ error: 'Name is required' });
   }
-
-  const filePath = path.join(__dirname, 'data.json');
 
   fs.readFile(filePath, 'utf-8', (err, data) => {
     let currentData = [];
@@ -93,7 +85,6 @@ app.post('/api/save-name', (req, res) => {
   });
 });
 
-// POST endpoint to save data to data.json
 app.post('/api/save-data', (req, res) => {
   const { name, tabs } = req.body;
 
@@ -101,7 +92,6 @@ app.post('/api/save-data', (req, res) => {
     return res.status(400).json({ error: 'Name and tabs are required' });
   }
 
-  const filePath = path.join(__dirname, 'data.json');
   const nonEmptyTabs = tabs.filter(tab => tab.content.trim() !== '');
 
   fs.readFile(filePath, 'utf-8', (err, data) => {
@@ -146,6 +136,5 @@ app.post('/api/save-data', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+module.exports = app;
+module.exports.handler = serverless(app);
