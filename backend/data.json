@@ -1,3 +1,17 @@
 [
-
+  {
+    "name": "1",
+    "tabs": [
+      {
+        "id": 1,
+        "name": "untitled 1",
+        "content": "dasdqw"
+      },
+      {
+        "id": 2,
+        "name": "untitled 2",
+        "content": "fasqwfadawdas"
+      }
+    ]
+  }
 ]
