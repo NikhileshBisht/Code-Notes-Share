@@ -5,13 +5,12 @@
       {
         "id": 1,
         "name": "untitled 1",
-        "content": "dasdqw"
-      },
-      {
-        "id": 2,
-        "name": "untitled 2",
-        "content": "fasqwfadawdas"
+        "content": "Hello!"
       }
     ]
+  },
+  {
+    "name": "2",
+    "tabs": []
   }
 ]
