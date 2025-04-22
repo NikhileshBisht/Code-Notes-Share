@@ -354,4 +354,12 @@
   .copy-button:hover {
     color: #007bff;
   }
+
+  .loader-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
   

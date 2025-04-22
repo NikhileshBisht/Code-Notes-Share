@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import '../App.css';
 import DeletePopup from './DeletePopup';
+import { ClimbingBoxLoader } from 'react-spinners';
 
 type Tab = {
   id: number;
@@ -19,9 +20,11 @@ const SheetTabs = ({ data }: Props) => {
   const [inputValue, setInputValue] = useState<string>('');
   const [isDelete, setIsDelete] = useState<boolean>(false);
   const [selectedTab, setSelectedTab] = useState<Tab | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/get-data`, {
           method: 'POST',
@@ -48,6 +51,8 @@ const SheetTabs = ({ data }: Props) => {
         }
       } catch (err) {
         console.error('Error fetching data:', err);
+      } finally{
+        setLoading(false);
       }
     };
   
@@ -152,6 +157,15 @@ const SheetTabs = ({ data }: Props) => {
   };
 
   const activeTab = tabs.find((t) => t.id === activeTabId);
+  
+  
+  if (loading) {
+    return (
+      <div className="loader-container">
+        <ClimbingBoxLoader color="#33d4bb" size={15} />
+      </div>
+    );
+  }
 
   return (
     <>
